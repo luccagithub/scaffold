@@ -1,0 +1,82 @@
+image: maven:3.3-jdk-8-alpine
+
+variables:
+  PROJECT_NAME: "scaffold"
+  HOME_PATCH: "/home/gitlab-runner"
+
+stages:
+  - test
+  - build
+  - deploy
+
+unit_test:
+  stage: test
+  tags:
+    - develop
+  script:
+    - mvn clean test -B
+
+#check_style:
+#  stage: test
+#  script:
+#    - mvn clean checkstyle:check -B
+
+.build: &build_template
+  stage: build
+  tags:
+    - develop
+  script:
+    - mvn install package -B -DskipTests
+
+develop_build:
+  <<: *build_template
+  only:
+    - branches
+  except:
+    - master
+  tags:
+    - develop
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - $PROJECT_NAME-web/target/*.jar
+
+master_build:
+  <<: *build_template
+  only:
+    - master
+    - tags
+  tags:
+    - develop
+  artifacts:
+    expire_in: 1 month
+    paths:
+      - $PROJECT_NAME-web/target/*.jar
+
+develop_deploy_jar:
+  stage: deploy
+  tags:
+    - develop
+  only:
+    - branches
+  script:
+    - pwd
+    - mkdir -p $HOME_PATCH/apps/$PROJECT_NAME
+    - cp $PROJECT_NAME-web/target/$PROJECT_NAME-web-1.0.0-SNAPSHOT.jar $HOME_PATCH/apps/$PROJECT_NAME/$PROJECT_NAME.jar
+    - cp $HOME_PATCH/builds/run.sh $HOME_PATCH/apps/$PROJECT_NAME/
+    - cd $HOME_PATCH/apps/$PROJECT_NAME
+    - sh run.sh $PROJECT_NAME '-Denv=DEV -Dapollo.cluster=DEV -Dnamespace=TEST1.pubConfig -Ddev_meta=http://172.31.9.199:8080'
+
+test_deploy_jar:
+  stage: deploy
+  tags:
+    - test
+  only:
+    - branches@origin/test
+  script:
+    - pwd
+    - mkdir -p $HOME_PATCH/apps/$PROJECT_NAME
+    - cp $PROJECT_NAME-web/target/$PROJECT_NAME-web-1.0.0-SNAPSHOT.jar $HOME_PATCH/apps/$PROJECT_NAME/$PROJECT_NAME.jar
+    - cp $HOME_PATCH/builds/run.sh $HOME_PATCH/apps/$PROJECT_NAME/
+    - cd $HOME_PATCH/apps/$PROJECT_NAME
+    - sh run.sh $PROJECT_NAME '-Denv=DEV -Dapollo.cluster=TEST -Dnamespace=TEST1.pubConfig -Ddev_meta=http://172.31.9.199:8080'

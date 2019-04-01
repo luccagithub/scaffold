@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zfax.scaffold.dao.mapper.AdminMapper">
+
+  <!-- 通用查询映射结果 -->
+  <resultMap id="BaseResultMap" type="com.zfax.scaffold.dao.model.Admin">
+    <id column="id" property="id" />
+    <result column="password" property="password" />
+    <result column="password_update_at" property="passwordUpdateAt" />
+    <result column="name" property="name" />
+    <result column="email" property="email" />
+    <result column="phone" property="phone" />
+    <result column="update_at" property="updateAt" />
+    <result column="create_at" property="createAt" />
+    <result column="create_by" property="createBy" />
+    <result column="update_by" property="updateBy" />
+    <result column="status" property="status" />
+    <result column="locked" property="locked" />
+    <result column="login_failed_times" property="loginFailedTimes" />
+  </resultMap>
+
+  <!-- 通用查询结果列 -->
+  <sql id="Base_Column_List">
+    id, password, password_update_at, `name`, email, phone, update_at, create_at, create_by, update_by, status,
+    login_failed_times
+    </sql>
+
+  <sql id="Base_Column_List_Admin">
+    a.id, a.password, a.password_update_at, a.`name`, a.email, a.phone, a.update_at, a.create_at, a.create_by, a.update_by, a.status,
+    a.login_failed_times
+  </sql>
+
+  <select id="selectByOrganizationIds" resultType="com.zfax.scaffold.dao.model.Admin">
+    SELECT
+    <include refid="Base_Column_List_Admin" />
+    FROM admin a
+    LEFT JOIN admin_organization ao ON ao.admin_id = a.id
+    WHERE ao.organization_id IN
+    <foreach collection="list" item="item" open="(" separator="," close=")">#{item}</foreach>
+    ORDER BY a.create_at desc
+  </select>
+
+</mapper>

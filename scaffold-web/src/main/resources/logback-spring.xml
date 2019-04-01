@@ -1,0 +1,3 @@
+<configuration>
+  <include resource="com/zfax/core/logback/logback-spring.xml"/>
+</configuration>

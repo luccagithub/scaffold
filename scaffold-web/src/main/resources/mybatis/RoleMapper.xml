@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zfax.scaffold.dao.mapper.RoleMapper">
+
+  <!-- 通用查询映射结果 -->
+  <resultMap id="BaseResultMap" type="com.zfax.scaffold.dao.model.Role">
+    <id column="id" property="id" />
+    <result column="name" property="name" />
+    <result column="description" property="description" />
+    <result column="create_at" property="createAt" />
+    <result column="create_by" property="createBy" />
+    <result column="status" property="status" />
+    <result column="system_id" property="systemId" />
+  </resultMap>
+
+  <!-- 通用查询结果列 -->
+  <sql id="Base_Column_List">
+      id, `name`, description, create_at, create_by, status, system_id
+    </sql>
+  <sql id="Base_Column_List_Role">
+    r.id, r.name, r.description, r.create_at, r.create_by, r.status, r.system_id
+  </sql>
+  <select id="selectBySystemIdAndAdminId" resultType="com.zfax.scaffold.dao.model.Role">
+    SELECT
+    <include refid="Base_Column_List_Role" />
+    FROM `role` r
+    LEFT JOIN admin_role ar ON r.id=ar.role_id
+    WHERE r.system_id=#{systemId} AND ar.admin_id=#{opAdminId}
+  </select>
+
+</mapper>
